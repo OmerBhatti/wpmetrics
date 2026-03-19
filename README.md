@@ -1,4 +1,5 @@
-# WPMetrics
+<img width="72" height="72" alt="image" align="center" src="https://github.com/user-attachments/assets/30cc95f8-aec5-49d8-9edf-4b97cd7c9e26" />
+<h1>WPMetrics</h1>
 
 WPMetrics is an Electron + React desktop app for typing analytics.
 
@@ -9,6 +10,9 @@ It tracks:
 - App breakdown
 - Hot keys
 - Goal progress and milestone notifications
+
+<img width="1256" height="621" alt="image" src="https://github.com/user-attachments/assets/f340411a-a24c-4462-b261-70fc9278ad0c" />
+
 
 ## Tech Stack
 
