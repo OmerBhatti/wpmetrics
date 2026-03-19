@@ -1,6 +1,15 @@
-const { contextBridge } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("appInfo", {
-  name: "Project 1",
-  env: process.env.NODE_ENV || "development",
+contextBridge.exposeInMainWorld("typing", {
+  sendKeypress: (payload) => ipcRenderer.send("typing:keypress", payload),
+  getSnapshot: () => ipcRenderer.invoke("typing:getSnapshot"),
+  setGoal: (goalWords) => ipcRenderer.invoke("typing:setGoal", goalWords),
+  setPaused: (paused) => ipcRenderer.invoke("typing:setPaused", paused),
+  setGlobalCapturePreferred: (preferred) =>
+    ipcRenderer.invoke("typing:setGlobalCapturePreferred", preferred),
+  onSnapshot: (handler) => {
+    const listener = (_event, payload) => handler(payload);
+    ipcRenderer.on("typing:snapshot", listener);
+    return () => ipcRenderer.removeListener("typing:snapshot", listener);
+  },
 });

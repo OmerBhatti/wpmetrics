@@ -17,6 +17,10 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
+  "optionalDependencies": {
+    "active-win": "^9.0.0",
+    "uiohook-napi": "^1.5.3"
+  },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.3",
     "concurrently": "^9.0.1",
