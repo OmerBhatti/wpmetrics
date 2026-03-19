@@ -1,0 +1,42 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f8fc;
+  --card: #ffffff;
+  --text: #1f2937;
+  --muted: #4b5563;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, #dbeafe, transparent 45%),
+    radial-gradient(circle at bottom right, #c7cbfe, transparent 40%),
+    var(--bg);
+  display: grid;
+  place-items: center;
+}
+
+.container {
+  width: min(92vw, 680px);
+  padding: 2rem;
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: 0 10px 35px rgba(17, 24, 39, 0.09);
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 0.8rem;
+}
+
+p {
+  margin: 0.25rem 0;
+  color: var(--muted);
+}
