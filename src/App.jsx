@@ -5,7 +5,7 @@ const NAV_ITEMS = [
 	{ id: 'productivity', label: 'Productivity' },
 	{ id: 'appBreakdown', label: 'App Break Down' },
 	{ id: 'hotKeys', label: 'Hot Keys' },
-	{ id: 'help', label: 'Help Page' },
+	{ id: 'help', label: 'Help' },
 ];
 
 const emptySnapshot = {
@@ -44,6 +44,7 @@ export default function App() {
 	const [snapshot, setSnapshot] = useState(emptySnapshot);
 	const [goalInput, setGoalInput] = useState('1000');
 	const [loaded, setLoaded] = useState(false);
+	const [clearingProgress, setClearingProgress] = useState(false);
 	const globalCaptureActiveRef = useRef(false);
 
 	useEffect(() => {
@@ -122,11 +123,26 @@ export default function App() {
 		if (updated) setSnapshot(updated);
 	};
 
+	const handleClearProgress = async () => {
+		if (!typing || clearingProgress) return;
+		const shouldClear = window.confirm(
+			'Clear all typing progress data? This will remove your stats history and cannot be undone.',
+		);
+		if (!shouldClear) return;
+
+		setClearingProgress(true);
+		try {
+			const updated = await typing.clearProgress();
+			if (updated) setSnapshot(updated);
+		} finally {
+			setClearingProgress(false);
+		}
+	};
+
 	function renderPageHeader({ title, subtitle, metricLabel, metricValue }) {
 		return (
 			<section className="hero">
 				<div>
-					<p className="eyebrow">WPMetrics</p>
 					<h1>{title}</h1>
 					<p className="muted-light">{subtitle}</p>
 				</div>
@@ -283,14 +299,18 @@ export default function App() {
 	}
 
 	function renderHotKeys() {
-		const topKey = topKeys[0]?.key || '--';
+		const top5Keys =
+			topKeys
+				.slice(0, 5)
+				.map(k => k.key)
+				.join(' ') || '--';
 		return (
 			<>
 				{renderPageHeader({
 					title: 'Hot Keys',
 					subtitle: 'Most frequently pressed keys.',
-					metricLabel: 'Top Key',
-					metricValue: topKey,
+					metricLabel: 'Top 5 Keys',
+					metricValue: top5Keys,
 				})}
 				<article className="card">
 					<h2>Key Heatmap</h2>
@@ -298,8 +318,8 @@ export default function App() {
 					<div className="key-grid">
 						{topKeys.map(item => (
 							<div className="key-box" key={item.key}>
-								<span className="key-name">{item.key}</span>
-								<strong>{item.count}</strong>
+								<span className="key-name">{item.count}</span>
+								<strong>{item.key}</strong>
 							</div>
 						))}
 					</div>
@@ -312,7 +332,7 @@ export default function App() {
 		return (
 			<>
 				{renderPageHeader({
-					title: 'Help Page',
+					title: 'Help',
 					subtitle: 'How to use this typing tracker.',
 					metricLabel: 'Tracking',
 					metricValue: snapshot.trackingPaused ? 'Paused' : 'On',
@@ -325,6 +345,11 @@ export default function App() {
 					</p>
 					<p className="muted">3. Use Daily Goal to set your word target and get milestone notifications.</p>
 					<p className="muted">4. If needed, disable Global Capture to fall back to window-only tracking.</p>
+					<div className="help-actions">
+						<button className="button-danger" onClick={handleClearProgress} disabled={clearingProgress}>
+							{clearingProgress ? 'Clearing...' : 'Clear All Progress'}
+						</button>
+					</div>
 				</article>
 			</>
 		);
@@ -354,7 +379,7 @@ export default function App() {
 			<aside className="side-navbar">
 				<div className="brand-block">
 					<p className="eyebrow">WPMetrics</p>
-					<h2>Typing Dashboard</h2>
+					<h2>Dashboard</h2>
 				</div>
 				<nav className="nav-links">
 					{NAV_ITEMS.map(item => (

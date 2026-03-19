@@ -199,6 +199,14 @@ class TypingTracker {
     this.scheduleSave();
   }
 
+  clearProgress() {
+    this.state.days = {};
+    this.state.milestones = {};
+    this.liveEvents = [];
+    this.scheduleSave();
+    return this.getSnapshot();
+  }
+
   getSettings() {
     return { ...this.state.settings };
   }

@@ -52,7 +52,6 @@ body {
 .eyebrow {
   margin: 0;
   font-size: 0.75rem;
-  text-transform: uppercase;
   letter-spacing: 0.08em;
   opacity: 0.9;
 }
@@ -228,6 +227,16 @@ button {
   color: var(--ink);
 }
 
+.button-danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.button-danger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .progress-track {
   height: 10px;
   border-radius: 999px;
@@ -291,6 +300,10 @@ button {
 
 .help-card .muted {
   margin-top: 0.5rem;
+}
+
+.help-actions {
+  margin-top: 1rem;
 }
 
 @media (max-width: 980px) {

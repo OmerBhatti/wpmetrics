@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("typing", {
   getSnapshot: () => ipcRenderer.invoke("typing:getSnapshot"),
   setGoal: (goalWords) => ipcRenderer.invoke("typing:setGoal", goalWords),
   setPaused: (paused) => ipcRenderer.invoke("typing:setPaused", paused),
+  clearProgress: () => ipcRenderer.invoke("typing:clearProgress"),
   setGlobalCapturePreferred: (preferred) =>
     ipcRenderer.invoke("typing:setGlobalCapturePreferred", preferred),
   onSnapshot: (handler) => {
