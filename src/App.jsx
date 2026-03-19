@@ -84,7 +84,7 @@ export default function App() {
 				key: event.key,
 				code: event.code,
 				timestamp: Date.now(),
-				appName: 'Project 1',
+				appName: 'WPMetrics',
 			});
 		};
 
@@ -126,7 +126,7 @@ export default function App() {
 		return (
 			<section className="hero">
 				<div>
-					<p className="eyebrow">Typing Statistics & Insight Tool</p>
+					<p className="eyebrow">WPMetrics</p>
 					<h1>{title}</h1>
 					<p className="muted-light">{subtitle}</p>
 				</div>
@@ -342,7 +342,7 @@ export default function App() {
 		return (
 			<main className="app-shell">
 				<section className="content-area">
-					<h1>Typing Stats MVP</h1>
+					<h1>WPMetrics</h1>
 					<p>Electron preload API unavailable.</p>
 				</section>
 			</main>
@@ -353,8 +353,8 @@ export default function App() {
 		<main className="app-shell">
 			<aside className="side-navbar">
 				<div className="brand-block">
-					<p className="eyebrow">Typing Insight</p>
-					<h2>Dashboard</h2>
+					<p className="eyebrow">WPMetrics</p>
+					<h2>Typing Dashboard</h2>
 				</div>
 				<nav className="nav-links">
 					{NAV_ITEMS.map(item => (

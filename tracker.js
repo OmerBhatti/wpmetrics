@@ -157,7 +157,7 @@ class TypingTracker {
 
     const timestamp = Number(payload?.timestamp) || Date.now();
     const key = payload?.key || "";
-    const appName = payload?.appName || "Project 1";
+    const appName = payload?.appName || "WPMetrics";
     const chars = estimateChars(key);
     const dateKey = getDateKey(timestamp);
     const day = this.ensureDay(dateKey);

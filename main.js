@@ -12,8 +12,8 @@ const TypingTracker = require("./tracker");
 const GlobalCapture = require("./global-capture");
 
 const devServerUrl = process.env.VITE_DEV_SERVER_URL;
-const trayIcon =
-  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO7ZQn0AAAAASUVORK5CYII=";
+const appIconPath = path.join(__dirname, "assets", "icons", "app-icon-512.png");
+const trayIconPath = path.join(__dirname, "assets", "icons", "tray-icon.png");
 
 let mainWindow = null;
 let tray = null;
@@ -37,6 +37,12 @@ function notifyMilestone(milestone) {
       ? `You reached ${milestone.goal} words today.`
       : `You crossed ${Math.round(milestone.goal * 0.5)} words today.`;
   new Notification({ title, body }).show();
+}
+
+function formatMetricNumber(value) {
+  const parsed = Number(value);
+  const safeValue = Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+  return safeValue.toLocaleString("en-US");
 }
 
 function buildSnapshot() {
@@ -65,16 +71,36 @@ function refreshRuntimeState() {
   };
 }
 
-function getTrayTitle() {
-  if (!tracker) return "WPM: 0";
-  const wpm = Math.round(tracker.getLiveWpm());
-  return `WPM: ${wpm}`;
+function getTrayTitle(snapshot) {
+  if (!snapshot) return "WPM: 0";
+  return `WPM: ${formatMetricNumber(snapshot.liveWpm)}`;
+}
+
+function getTrayTooltip(snapshot) {
+  if (!snapshot) return "WPMetrics\nWPM: 0";
+
+  const wpm = formatMetricNumber(snapshot.liveWpm);
+  const todayWords = formatMetricNumber(snapshot.today.words);
+  const weekWords = formatMetricNumber(snapshot.week.words);
+  const goalWords = formatMetricNumber(snapshot.goal.words);
+  const goalProgress = formatMetricNumber(snapshot.goal.progressPercent);
+  const captureMode = snapshot.runtime.captureMode === "global" ? "Global" : "Window";
+  const trackingStatus = snapshot.trackingPaused ? "Paused" : "Active";
+
+  return [
+    "WPMetrics",
+    `WPM: ${wpm} (total ${todayWords} words today)`,
+    `7-day: ${weekWords} words`,
+    `Goal: ${goalProgress}% of ${goalWords} words`,
+    `Capture: ${captureMode} | Tracking: ${trackingStatus}`,
+  ].join("\n");
 }
 
 function updateTrayDisplay() {
   if (!tray) return;
-  if (process.platform === "darwin") tray.setTitle(getTrayTitle());
-  tray.setToolTip(`Typing Stats - ${getTrayTitle()}`);
+  const snapshot = buildSnapshot();
+  if (process.platform === "darwin") tray.setTitle(getTrayTitle(snapshot));
+  tray.setToolTip(getTrayTooltip(snapshot));
 }
 
 function sendSnapshotToWindow() {
@@ -164,6 +190,7 @@ function createWindow() {
     height: 760,
     show: false,
     backgroundColor: "#eef2ff",
+    icon: appIconPath,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -185,7 +212,11 @@ function createWindow() {
 }
 
 function createTray() {
-  const icon = nativeImage.createFromDataURL(trayIcon);
+  let icon = nativeImage.createFromPath(trayIconPath);
+  if (process.platform === "darwin") {
+    icon = icon.resize({ width: 14, height: 14 });
+    icon.setTemplateImage(true);
+  }
   tray = new Tray(icon);
   tray.on("click", () => {
     if (!mainWindow) return;
@@ -235,6 +266,10 @@ function startTicker() {
 }
 
 app.whenReady().then(async () => {
+  if (app.dock && typeof app.dock.setIcon === "function") {
+    app.dock.setIcon(appIconPath);
+  }
+
   tracker = new TypingTracker({
     userDataPath: app.getPath("userData"),
     onMilestone: notifyMilestone,

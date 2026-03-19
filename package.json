@@ -1,7 +1,7 @@
 {
-  "name": "project-1",
+  "name": "wpmetrics",
   "version": "1.0.0",
-  "description": "Electron + React app",
+  "description": "WPMetrics typing analytics app",
   "main": "main.js",
   "scripts": {
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:electron\"",
