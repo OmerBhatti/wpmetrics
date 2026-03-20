@@ -74,6 +74,32 @@ npm run build
 npm start
 ```
 
+## Build for macOS
+
+Build commands (run on macOS):
+
+```bash
+# app bundle only (no installer)
+npm run pack:mac
+
+# dmg + zip distribution
+npm run dist:mac
+
+# dmg + zip without code signing (local/testing)
+npm run dist:mac:unsigned
+```
+
+Output location:
+
+- `release/` (configured in electron-builder)
+- Typical files: `.app`, `.dmg`, `.zip`
+
+Important:
+
+- You must build mac apps on macOS.
+- `dist:mac` expects a valid Apple signing identity in Keychain.
+- If you only want to test locally, use `dist:mac:unsigned`.
+
 ## Notes
 
 - If app names show as `Unknown App`, check macOS permissions.

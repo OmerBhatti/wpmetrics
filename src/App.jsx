@@ -45,7 +45,9 @@ export default function App() {
 	const [goalInput, setGoalInput] = useState('1000');
 	const [loaded, setLoaded] = useState(false);
 	const [clearingProgress, setClearingProgress] = useState(false);
+	const [milestoneToast, setMilestoneToast] = useState(null);
 	const globalCaptureActiveRef = useRef(false);
+	const toastTimerRef = useRef(null);
 
 	useEffect(() => {
 		globalCaptureActiveRef.current = Boolean(snapshot.runtime?.globalCaptureActive);
@@ -91,6 +93,32 @@ export default function App() {
 
 		window.addEventListener('keydown', onKeyDown, true);
 		return () => window.removeEventListener('keydown', onKeyDown, true);
+	}, [typing]);
+
+	useEffect(() => {
+		if (!typing || typeof typing.onMilestone !== 'function') return undefined;
+
+		const unsubscribe = typing.onMilestone(payload => {
+			if (!payload) return;
+			setMilestoneToast({
+				title: payload.title || 'Milestone reached',
+				body: payload.body || '',
+				level: payload.level || 'half',
+			});
+			if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+			toastTimerRef.current = setTimeout(() => {
+				setMilestoneToast(null);m
+				toastTimerRef.current = null;
+			}, 5500);
+		});
+
+		return () => {
+			if (toastTimerRef.current) {
+				clearTimeout(toastTimerRef.current);
+				toastTimerRef.current = null;
+			}
+			unsubscribe();
+		};
 	}, [typing]);
 
 	const topKeys = useMemo(() => snapshot.keyHeatmap.slice(0, 24), [snapshot.keyHeatmap]);
@@ -402,6 +430,21 @@ export default function App() {
 				{renderPage()}
 				{!loaded ? <p className="muted">Loading tracker...</p> : null}
 			</section>
+			{milestoneToast ? (
+				<div
+					className={`milestone-toast milestone-toast-${milestoneToast.level}`}
+					role="status"
+					aria-live="polite"
+				>
+					<div className="toast-copy">
+						<strong>{milestoneToast.title}</strong>
+						<p>{milestoneToast.body}</p>
+					</div>
+					<button className="toast-close" onClick={() => setMilestoneToast(null)}>
+						Close
+					</button>
+				</div>
+			) : null}
 		</main>
 	);
 }

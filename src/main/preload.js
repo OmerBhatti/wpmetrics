@@ -13,4 +13,9 @@ contextBridge.exposeInMainWorld("typing", {
     ipcRenderer.on("typing:snapshot", listener);
     return () => ipcRenderer.removeListener("typing:snapshot", listener);
   },
+  onMilestone: (handler) => {
+    const listener = (_event, payload) => handler(payload);
+    ipcRenderer.on("typing:milestone", listener);
+    return () => ipcRenderer.removeListener("typing:milestone", listener);
+  },
 });

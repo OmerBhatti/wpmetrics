@@ -52,7 +52,7 @@ function defaultState() {
     settings: {
       paused: false,
       goalWords: 1000,
-      preferGlobalCapture: true,
+      preferGlobalCapture: false,
     },
     milestones: {},
   };
@@ -183,7 +183,17 @@ class TypingTracker {
   setGoalWords(goalWords) {
     const parsed = Number(goalWords);
     if (!Number.isFinite(parsed) || parsed <= 0) return this.getSnapshot();
-    this.state.settings.goalWords = Math.round(parsed);
+    const normalizedGoal = Math.round(parsed);
+    const goalChanged = this.state.settings.goalWords !== normalizedGoal;
+    this.state.settings.goalWords = normalizedGoal;
+
+    if (goalChanged) {
+      const todayKey = getDateKey();
+      // Reset today's milestone flags so goal notifications can trigger again.
+      this.state.milestones[todayKey] = { half: false, full: false };
+      this.checkMilestones(todayKey);
+    }
+
     this.scheduleSave();
     return this.getSnapshot();
   }

@@ -1,5 +1,14 @@
 const path = require('path');
-const { app, BrowserWindow, Tray, Menu, nativeImage, Notification, ipcMain } = require('electron');
+const {
+	app,
+	BrowserWindow,
+	Tray,
+	Menu,
+	nativeImage,
+	Notification,
+	ipcMain,
+	systemPreferences,
+} = require('electron');
 const TypingTracker = require('./tracker');
 const GlobalCapture = require('./global-capture');
 
@@ -11,6 +20,7 @@ app.setName('WPMetrics');
 
 let mainWindow = null;
 let tray = null;
+let trayMenu = null;
 let tracker = null;
 let globalCapture = null;
 let tickInterval = null;
@@ -23,14 +33,29 @@ let runtimeState = {
 	captureMode: 'window',
 };
 
+function hasMacAccessibilityPermission(prompt = false) {
+	if (process.platform !== 'darwin') return true;
+	try {
+		return systemPreferences.isTrustedAccessibilityClient(Boolean(prompt));
+	} catch {
+		return false;
+	}
+}
+
 function notifyMilestone(milestone) {
-	if (!Notification.isSupported()) return;
 	const title = milestone.level === 'full' ? 'Goal reached' : 'Halfway there';
 	const body =
 		milestone.level === 'full'
 			? `You reached ${milestone.goal} words today.`
 			: `You crossed ${Math.round(milestone.goal * 0.5)} words today.`;
-	new Notification({ title, body }).show();
+
+	if (Notification.isSupported()) {
+		new Notification({ title, body }).show();
+	}
+
+	if (mainWindow && !mainWindow.isDestroyed()) {
+		mainWindow.webContents.send('typing:milestone', { title, body, level: milestone.level });
+	}
 }
 
 function formatMetricNumber(value) {
@@ -104,11 +129,20 @@ function sendSnapshotToWindow() {
 	mainWindow.webContents.send('typing:snapshot', snapshot);
 }
 
-async function applyGlobalCapturePreference(enabled) {
+async function applyGlobalCapturePreference(enabled, options = {}) {
 	if (!tracker || !globalCapture) return buildSnapshot();
+	const promptForPermission = Boolean(options.promptForPermission);
 	tracker.setPreferGlobalCapture(Boolean(enabled));
 
 	if (enabled) {
+		if (!hasMacAccessibilityPermission(promptForPermission)) {
+			globalCapture.stop('Grant Accessibility permission, then enable Global Capture again');
+			refreshRuntimeState();
+			rebuildTrayMenu();
+			updateTrayDisplay();
+			sendSnapshotToWindow();
+			return buildSnapshot();
+		}
 		await globalCapture.start();
 	} else {
 		globalCapture.stop('Disabled by user');
@@ -126,7 +160,7 @@ function rebuildTrayMenu() {
 	const snapshot = buildSnapshot();
 	if (!snapshot) return;
 
-	const contextMenu = Menu.buildFromTemplate([
+	trayMenu = Menu.buildFromTemplate([
 		{
 			label: 'Open Dashboard',
 			click: () => {
@@ -149,7 +183,7 @@ function rebuildTrayMenu() {
 			type: 'checkbox',
 			checked: snapshot.runtime.globalCapturePreferred,
 			click: menuItem => {
-				applyGlobalCapturePreference(menuItem.checked);
+				applyGlobalCapturePreference(menuItem.checked, { promptForPermission: menuItem.checked });
 			},
 		},
 		{
@@ -167,7 +201,7 @@ function rebuildTrayMenu() {
 			},
 		},
 	]);
-	tray.setContextMenu(contextMenu);
+	tray.setContextMenu(trayMenu);
 }
 
 function loadWindow(mainWindowRef) {
@@ -255,7 +289,9 @@ function setupIpc() {
 		return buildSnapshot();
 	});
 	ipcMain.handle('typing:setGlobalCapturePreferred', (_event, preferred) =>
-		applyGlobalCapturePreference(Boolean(preferred)),
+		applyGlobalCapturePreference(Boolean(preferred), {
+			promptForPermission: Boolean(preferred),
+		}),
 	);
 }
 
